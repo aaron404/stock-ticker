@@ -204,48 +204,6 @@ class Game:
             holdings = ", ".join([f"{amt} {stk}" for stk, amt in player.holdings.items()])
             print(f"{player.name.rjust(9)} | {player.money: >7} | {net_worth: >9} | {holdings}")
 
-    def action(self, name, action):
-        a = "sell"
-        if action == "b":
-            a = "buy"
-
-        player = self.players[name]
-        
-        money = player.money
-        print(f"     Stock   | Cost/500 | Cost/1000 | Max {a} (cost)")
-        for stock in stocks:
-            cost_per_500 = self.values[stock] * 5
-            max_buy = 500 * (money // cost_per_500)
-            max_cost = max_buy * self.values[stock] // 100
-            print(f"  {stock: >10} | {cost_per_500: >8} | {cost_per_500 * 2: >9} | {max_buy} ({max_cost})")
-        print("Enter stock and amount, or f to finish")
-        done = False
-        while not done:
-            match input(f"{a} stock > ").split():
-                case [stock, amount]:
-                    amount = int(amount)
-                    if stock in stocks:
-                        if amount % 500 == 0:
-                            cost = amount * self.values[stock] // 100
-                            if action == "b":
-                                if cost <= money:
-                                    player.money -= cost
-                                    player.holdings[stock] += amount
-                                    print(f"Bought {amount} {stock}, cash remaining: {player.money}")
-                                else:
-                                    print("Cannot afford")
-                            elif action == "s":
-                                if amount <= self.players[name].holdings[stock]:
-                                    player.holdings[stock] -= amount
-                                    player.money += cost
-                                    print(f"Sold {amount} {stock}, cash remaining: {player.money}")
-                        else:
-                            print("Amount must be multiple of 500")
-                    else:
-                        print(f"Invalid stock: {stock}")
-                case ["f"]:
-                    done = True
-
     def get_players(self):
         #initialize players
         #num_players = int(input("Number of players: "))
@@ -312,27 +270,6 @@ class Game:
                         player.holdings[stock] -= self.current_buy
                     # self.current_buy = 0
                     # self.current_value = 0
-
-            # match input("> ").split():
-            #     case "":
-            #         pass
-            #     case ["r"]:
-            #         self.roll()
-            #     case ["r", num_rolls]:
-            #         num_rolls = int(num_rolls)
-            #         for i in range(num_rolls):
-            #             self.roll()
-            #     #case ["b" | "buy" , player, stock]:
-            #     case ["q"]:
-            #         break
-            #     case [name, action]:
-            #         if name in names:
-            #             if action in ["b", "s"]:
-            #                 self.action(name, action)
-            #             else:
-            #                 print("Invalid action")
-            #         else:
-            #             print("Invalid name")
 
 def main(stdscr):
     global stock_colors, action_colors
