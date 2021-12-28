@@ -60,10 +60,10 @@ class Game:
         amount = [5, 10, 20][random.randint(0, 2)]
         sc = stock_colors[stock]
         ac = action_colors[actions[action]]
-        x, y = self.log_win.getmaxyx()
+        y, x = self.log_win.getmaxyx()
         self.log_win.scroll(1)
-        self.log_win.hline(y+2, 0, " ", 60)
-        self.log_win.addstr(y+2, 2, f"{stock}", sc)
+        self.log_win.hline(y-2, 1, " ", x-2)
+        self.log_win.addstr(y-2, 2, f"{stock}", sc)
         self.log_win.addstr(f" {actions[action]}", ac)
         self.log_win.addstr(f" {amount}")
         
@@ -71,8 +71,8 @@ class Game:
             self.values[stock] -= amount
             if self.values[stock] <= 0:
                 self.log_win.scroll(1)
-                self.log_win.hline(y+2, 0, " ", 60)
-                self.log_win.addstr(y+2, 2, f"{stock} bust!".center(x - 5), curses.color_pair(rgb(5, 0, 0)) | curses.A_STANDOUT)
+                self.log_win.hline(y-2, 1, " ", x-2)
+                self.log_win.addstr(y-2, 2, f"{stock} bust!".center(x - 5), curses.color_pair(rgb(5, 0, 0)) | curses.A_STANDOUT)
                 for name, player in self.players.items():
                     player.holdings[stock] = 0
                 self.values[stock] = 100
@@ -80,8 +80,8 @@ class Game:
             self.values[stock] += amount
             if self.values[stock] >= 200:
                 self.log_win.scroll(1)
-                self.log_win.hline(y+2, 0, " ", 60)
-                self.log_win.addstr(y+2, 2, f"{stock} split!".center(x - 5), curses.color_pair(rgb(2, 5, 0)) | curses.A_STANDOUT)
+                self.log_win.hline(y-2, 1, " ", x-2)
+                self.log_win.addstr(y-2, 2, f"{stock} split!".center(x - 5), curses.color_pair(rgb(2, 5, 0)) | curses.A_STANDOUT)
                 for name, player in self.players.items():
                     player.holdings[stock] *= 2
                 self.values[stock] = 100
