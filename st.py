@@ -1,6 +1,7 @@
 import curses
 import curses.ascii
 import random
+import time
 
 UP = 0
 DOWN = 1
@@ -9,6 +10,8 @@ DIV = 2
 ACTION_ROLL = 0
 ACTION_BUY = 1
 ACTION_SELL = 2
+
+# random.seed(0)
 
 def rgb(r, g, b):
     return r * 36 + g * 6 + b + 17
@@ -46,6 +49,7 @@ class Game:
         self.action_win   = curses.newwin(curses.LINES - num_stocks * 2 - 7 - 1, 60, self.holdings_win.getmaxyx()[0] + self.board_win.getmaxyx()[0], 0)
         self.log_win      = curses.newwin(curses.LINES, curses.COLS - 60, 0, 60)
         self.log_win.scrollok(True)
+        self.action_win.keypad(True)
         
         self.main()
 
@@ -56,7 +60,6 @@ class Game:
         amount = [5, 10, 20][random.randint(0, 2)]
         sc = stock_colors[stock]
         ac = action_colors[actions[action]]
-        # print(f"> {stock} {ac}{actions[action]}{r} {amount}")
         x, y = self.log_win.getmaxyx()
         self.log_win.scroll(1)
         self.log_win.hline(y+2, 0, " ", 60)
@@ -67,14 +70,18 @@ class Game:
         if action == DOWN:
             self.values[stock] -= amount
             if self.values[stock] <= 0:
-                # print(f"{stock} bust!")
+                self.log_win.scroll(1)
+                self.log_win.hline(y+2, 0, " ", 60)
+                self.log_win.addstr(y+2, 2, f"{stock} bust!".center(x - 5), curses.color_pair(rgb(5, 0, 0)) | curses.A_STANDOUT)
                 for name, player in self.players.items():
                     player.holdings[stock] = 0
                 self.values[stock] = 100
         elif action == UP:
             self.values[stock] += amount
             if self.values[stock] >= 200:
-                # print(f"{stock} split!")
+                self.log_win.scroll(1)
+                self.log_win.hline(y+2, 0, " ", 60)
+                self.log_win.addstr(y+2, 2, f"{stock} split!".center(x - 5), curses.color_pair(rgb(2, 5, 0)) | curses.A_STANDOUT)
                 for name, player in self.players.items():
                     player.holdings[stock] *= 2
                 self.values[stock] = 100
@@ -145,6 +152,10 @@ class Game:
             self.action_win.addstr(5, 4, "b: Buy stocks")
             self.action_win.addstr(6, 4, "s: Sell stocks")
             self.action_win.addstr(7, 4, "q: Quit game")
+            self.action_win.addch(8, 4, curses.ACS_LARROW)
+            self.action_win.addstr(" Select previous player")
+            self.action_win.addch(9, 4, curses.ACS_RARROW)
+            self.action_win.addstr(" Select next player")
         else:
             action = "Buy"
             if self.current_action == ACTION_SELL:
@@ -173,37 +184,6 @@ class Game:
 
         self.action_win.refresh()
 
-        # for i in range(17):
-        #     self.stdscr.addstr(0, i, "A", curses.color_pair(i))
-
-        # for i in range(42):
-        #     for j in range(6):
-        #         self.stdscr.addstr(i+1, j, "A", curses.color_pair(17 + i * 6 + j))
-        # self.stdscr.refresh()
-
-        return
-        print(" " * 9  + "bust                  par               split")
-        print(" " * 11 +   "v                    v                  v")
-        for i in range(num_stocks):
-            stock = stocks[i]
-            x = self.values[stock] // 5 - 1
-            indicator = " " * x + "*"
-            indicator = indicator.ljust(39)
-            c = stock_colors[stock]
-            r = Style.RESET_ALL
-            print(f"{c}{stock:>10}{r} |{indicator}| {c}{self.values[stock]/100:.2f}{r}")
-        
-        print()
-        print("  Player  |  Money  | Net Worth | Holdings")
-        for name, player in players.items():
-            net_worth = 0
-            for stock in stocks:
-                net_worth += player.holdings[stock] * self.values[stock] // 100
-            net_worth += player.money
-            # player.draw(net_worth)
-            holdings = ", ".join([f"{amt} {stk}" for stk, amt in player.holdings.items()])
-            print(f"{player.name.rjust(9)} | {player.money: >7} | {net_worth: >9} | {holdings}")
-
     def get_players(self):
         #initialize players
         #num_players = int(input("Number of players: "))
@@ -221,12 +201,14 @@ class Game:
         while True:
             # print game state
             self.draw()
-            k = self.stdscr.getch()
+            k = self.action_win.getch()
 
             if k == ord("r"):
                 self.roll()
             if k == ord("R"):
                 for i in range(10): self.roll()
+            elif k == ord("q"):
+                return
             if k == ord("b") and self.current_action == ACTION_ROLL:
                 self.current_action = ACTION_BUY
                 self.action_win.erase()
@@ -292,7 +274,8 @@ def main(stdscr):
         "div": curses.color_pair(rgb(0, 5, 5))
     }
 
-    stdscr.keypad(True)
+    #stdscr.keypad(True)
+    curses.curs_set(0)
 
     if curses.COLS < 80:
         print("Terminal must be at least 80 characters wide")
