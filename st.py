@@ -130,7 +130,7 @@ class Game:
 
     def _draw_title(self, scr, title):
         scr.addch(0, 3, curses.ACS_SBSS)
-        scr.addstr(f" {title} ", curses.A_BOLD)
+        scr.addstr(f" {title.upper()} ", curses.A_BOLD)
         scr.addch(curses.ACS_SSSB)
 
     def draw(self):
@@ -231,8 +231,9 @@ class Game:
             self.action_win.addch(" ")
             self.action_win.addch(curses.ACS_RARROW)
             self.action_win.addstr(" to change amount by 2500")
+            self.action_win.addstr(5, 4, f"m: max {action.lower()}")
             # self.action_win.addstr(4, 4, "  shift + left/right arrow keys to change amount by 2500")
-            self.action_win.addstr(5, 2, "  backspace to finish")
+            self.action_win.addstr(6, 4, "backspace to finish")
 
         self.action_win.refresh()
 
@@ -254,7 +255,12 @@ class Game:
         import json
         open("names.txt", "w").write(json.dumps(player_names))
 
+    def play(self):
+        for player in self.players_list:
+            player.play(self.values, self.log_win)
+
     def main(self):
+        self.play()
         # game loop
         while True:
             # print game state
@@ -268,10 +274,10 @@ class Game:
                     player.play(self.values, self.log_win)
             elif k == ord("q"):
                 return
-            if k == ord("b") and self.current_action == ACTION_ROLL:
+            if k == ord("b"):
                 self.current_action = ACTION_BUY
                 self.action_win.erase()
-            if k == ord("s") and self.current_action == ACTION_ROLL:
+            if k == ord("s"):
                 self.action_win.erase()
                 self.current_action = ACTION_SELL
             if k == curses.KEY_BACKSPACE:
@@ -323,7 +329,8 @@ class Game:
                     self.log_win.addstr(f"{stock}", sc)
                     # self.log_win.addstr(y - 2, 4, f" for {self.current_value}")
                     self.log_win.addstr(f" for {self.current_value}")
-
+                elif k == ord('m'):
+                    self.current_buy = 10000000
 def main(stdscr):
     global stock_colors, action_colors
 
